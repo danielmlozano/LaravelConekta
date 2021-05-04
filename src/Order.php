@@ -2,8 +2,10 @@
 
 namespace Danielmlozano\LaravelConekta;
 
+use Conekta\Handler;
 use Conekta\Order as ConektaOrder;
 use Danielmlozano\LaravelConekta\Exceptions\InvalidProduct;
+use Danielmlozano\LaravelConekta\Exceptions\NoPaymentMethod;
 use Danielmlozano\LaravelConekta\PaymentMethod;
 
 class Order
@@ -27,7 +29,7 @@ class Order
      *
      * @var \Danielmlozano\LaravelConekta\PaymentMethod
      */
-    private $payment_method;
+    private $payment_method = null;
 
     /**
      * Order's owner
@@ -106,25 +108,55 @@ class Order
     public function withPaymentMethod($payment_method)
     {
         if (is_string($payment_method)) {
-            $payment_method = $this->findPaymentMethod($payment_method);
+            $payment_method = $this->owner->findPaymentMethod($payment_method);
         }
         $this->payment_method = $payment_method;
     }
 
+    /**
+     * Perform the charge
+     *
+     * @param array $options
+     * @return void
+     *
+     * @throws \Danielmlozano\LaravelConekta\Exceptions\NoPaymentMethod
+     */
     public function charge($options = [])
     {
-        ConektaOrder::create(array_merge(
-            [
-                'currency' => $this->currency,
-                'customer_id' => $this->owner->conekta_id,
-                'line_items' => $this->getProducts()->map(
-                    fn ($item) => $item->toArray()
-                )->toArray(),
-                'charges' => [
-                    'payment_method' => $this->payment_method->toArray(),
-                ]
-            ],
-            $options,
-        ));
+        if (is_null($this->payment_method)) {
+            throw NoPaymentMethod::paymentMethodNotSetted();
+        }
+
+        try {
+            $amount = array_reduce($this->products, fn ($carry, $item) => $carry += $item->quantity * $item->unit_price);
+            $payload = array_merge(
+                [
+                    'currency' => $this->currency,
+                    "customer_info" => [
+                        "customer_id" => $this->owner->conekta_id,
+                    ],
+                    'line_items' => $this->getProducts()->map(
+                        fn ($item) => $item->toArray()
+                    )->toArray(),
+                    'charges' => [
+                        [
+                            'payment_method' => [
+                                'type' => 'card',
+                                'payment_source_id' => $this->payment_method->__get('id'),
+                            ],
+                            'amount' => $amount,
+                        ]
+                    ]
+                ],
+                $options,
+            );
+
+            return new Payment(ConektaOrder::create($payload));
+        } catch (Handler $error) {
+            // $conekta_error = $error->getConektaMessage();
+            // print(var_dump($conekta_error->type));
+            // print(var_dump($conekta_error->details));
+            throw $error;
+        }
     }
 }

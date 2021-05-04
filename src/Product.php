@@ -2,6 +2,10 @@
 
 namespace Danielmlozano\LaravelConekta;
 
+use JsonSerializable;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+
 class Product implements Arrayable, Jsonable, JsonSerializable
 {
     /**

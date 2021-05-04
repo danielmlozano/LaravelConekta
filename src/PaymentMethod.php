@@ -2,9 +2,9 @@
 
 namespace Danielmlozano\LaravelConekta;
 
+use JsonSerializable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
-use JsonSerializable;
 use Conekta\PaymentSource as ConektaPaymentMethod;
 use Danielmlozano\LaravelConekta\Exceptions\InvalidPaymentMethod;
 
