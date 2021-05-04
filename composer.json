@@ -1,0 +1,26 @@
+{
+    "name": "daniel/laravel-conekta",
+    "description": "Laravel package that provides a simple, easy-to-use interface to Conekta Payment services",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Mendoza Lozano",
+            "email": "daniel@danielmlozano.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.2.5|^8.0",
+        "conekta/conekta-php": "^4.3"
+    },
+    "require-dev":{
+        "phpunit/phpunit": "^8.0|^9.0"
+    },
+    "autoload":{
+        "psr-4": {
+            "Danielmlozano\\LaravelConekta\\": "src/"
+        }
+
+    }
+}
