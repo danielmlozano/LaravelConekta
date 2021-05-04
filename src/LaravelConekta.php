@@ -30,8 +30,10 @@ class LaravelConekta
      */
     public static function init()
     {
-        Conekta::setApiKey(config('conekta.key'));
-        Conekta::setApiVersion(static::CONEKTA_VERSION);
-        Conekta::setLocale(App::currentLocale());
+        if (App::environment() !== 'testing') {
+            Conekta::setApiKey(config('conekta.secret'));
+            Conekta::setApiVersion(static::CONEKTA_VERSION);
+            Conekta::setLocale(App::currentLocale());
+        }
     }
 }

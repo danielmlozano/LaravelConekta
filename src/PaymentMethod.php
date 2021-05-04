@@ -4,7 +4,9 @@ namespace Danielmlozano\LaravelConekta;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
-use Conekta\PaymentMethod as ConektaPaymentMethod;
+use JsonSerializable;
+use Conekta\PaymentSource as ConektaPaymentMethod;
+use Danielmlozano\LaravelConekta\Exceptions\InvalidPaymentMethod;
 
 class PaymentMethod implements Arrayable, Jsonable, JsonSerializable
 {
@@ -33,7 +35,7 @@ class PaymentMethod implements Arrayable, Jsonable, JsonSerializable
      */
     public function __construct($owner, ConektaPaymentMethod $paymentMethod)
     {
-        if ($owner->stripe_id !== $paymentMethod->parent_id) {
+        if ($owner->conekta_id !== $paymentMethod->parent_id) {
             throw InvalidPaymentMethod::invalidOwner($paymentMethod, $owner);
         }
 
@@ -58,7 +60,17 @@ class PaymentMethod implements Arrayable, Jsonable, JsonSerializable
      */
     public function toArray()
     {
-        return $this->asConektaPaymentMethod()->toArray();
+        return [
+            'id' => $this->__get('id'),
+            'type' => $this->__get('type'),
+            'created_at' => $this->__get('created_at'),
+            'last4' => $this->__get('last4'),
+            'name' => $this->__get('name'),
+            'exp_month' => $this->__get('exp_month'),
+            'exp_year' => $this->__get('exp_year'),
+            'brand' => $this->__get('brand'),
+            'parent_id' => $this->__get('parent_id'),
+        ];
     }
 
     /**

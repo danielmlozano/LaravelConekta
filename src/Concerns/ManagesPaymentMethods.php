@@ -19,7 +19,7 @@ trait ManagesPaymentMethods
     {
         $this->assertCustomerExists();
         $customer = $this->asConektaCustomer();
-        $payment_method = $customer->createPaymentMethod([
+        $payment_method = $customer->createPaymentSource([
             'token_id' => $token_id,
             'type' => $type,
         ]);
@@ -43,6 +43,23 @@ trait ManagesPaymentMethods
         return collect($payment_methods)->map(
             fn ($pm) => new PaymentMethod($this, $pm)
         );
+    }
+
+    /**
+     * Retrieve the given Payment method by Conekta ID
+     *
+     * @param string $payment_method
+     * @return \Danielmlozano\LaravelConekta\PaymentMethod
+     */
+    public function findPaymentMethod(string $payment_method)
+    {
+        if (!$this->hasConektaId()) {
+            return null;
+        }
+
+        return $this->paymentMethods()->filter(
+            fn ($pm) => $pm->__get('id') === $payment_method
+        )->first();
     }
 
     /**
