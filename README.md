@@ -61,3 +61,8 @@ $user->addPaymentMethod('payment_method_token', 'card');
 ## Documentation
 
 You can read the entire documentation here: <a href="https://danielmlozano.dev/docs/laravelconekta/" target="_blank">https://danielmlozano.dev/docs/laravelconekta/</a>
+
+## Contributors
+
+I created this package for a project and in its first version, only contain the functionality that I needed. For this reason. all contributors are welcome to improve and 
+add more features to the package.
