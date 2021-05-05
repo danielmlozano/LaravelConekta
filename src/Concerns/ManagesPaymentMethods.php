@@ -114,6 +114,12 @@ trait ManagesPaymentMethods
             $payment_method = $payment_method->asConektaPaymentMethod();
         }
 
+        if ($payment_method->default) {
+            $this->owner->card_last_four = null;
+            $this->owner->card_brand = null;
+            $this->owner->save();
+        }
+
         return $payment_method->delete();
     }
 

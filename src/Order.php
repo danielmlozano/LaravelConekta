@@ -31,6 +31,14 @@ class Order
      */
     private $payment_method = null;
 
+
+    /**
+     * The card token in case customer doesn't have payment methods
+     *
+     * @var string
+     */
+    private $card_token = null;
+
     /**
      * Order's owner
      *
@@ -71,7 +79,7 @@ class Order
     public function addProduct($product)
     {
         if (is_array($product)) {
-            if (!array_key_exists("name", $product, ) || !array_key_exists("unit_price", $product) || !array_key_exists("quantity", $product)) {
+            if (!array_key_exists("name", $product,) || !array_key_exists("unit_price", $product) || !array_key_exists("quantity", $product)) {
                 throw InvalidProduct::invalidData();
             }
             $product = new Product(
@@ -97,6 +105,20 @@ class Order
     public function getProducts()
     {
         return collect($this->products);
+    }
+
+    /**
+     * Set the card token instead of the payment method
+     *
+     * @param string $card_token
+     *
+     * @return \Danielmlozano\LaravelConekta\Order;
+     */
+    public function withCard(string $card_token)
+    {
+        $this->card_token = $card_token;
+        $this->payment_method = null;
+        return $this;
     }
 
     /**
@@ -139,8 +161,20 @@ class Order
      */
     public function charge($options = [])
     {
-        if (is_null($this->payment_method)) {
+        if (is_null($this->payment_method) && is_null($this->card_token)) {
             throw NoPaymentMethod::paymentMethodNotSetted();
+        }
+
+        $payment_method = [
+            'type' => 'card',
+        ];
+
+        if (!is_null($this->payment_method)) {
+            $payment_method['payment_source_id'] = $this->payment_method->__get('id');
+        }
+
+        if (!is_null($this->card_token)) {
+            $payment_method['token_id'] = $this->card_token;
         }
 
         try {
@@ -156,10 +190,7 @@ class Order
                     )->toArray(),
                     'charges' => [
                         [
-                            'payment_method' => [
-                                'type' => 'card',
-                                'payment_source_id' => $this->payment_method->__get('id'),
-                            ],
+                            'payment_method' => $payment_method,
                             'amount' => $amount,
                         ]
                     ]
