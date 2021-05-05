@@ -103,7 +103,7 @@ class Order
      * Set the selected payment method to perform the charge
      *
      * @param string|\Danielmlozano\LaravelConekta\PaymentMethod $payment_method
-     * @return void
+     * @return \Danielmlozano\LaravelConekta\Order;
      */
     public function withPaymentMethod($payment_method)
     {
@@ -111,6 +111,22 @@ class Order
             $payment_method = $this->owner->findPaymentMethod($payment_method);
         }
         $this->payment_method = $payment_method;
+        return $this;
+    }
+
+    /**
+     * Set the default payment method to perform the charge
+     *
+     * @return \Danielmlozano\LaravelConekta\Order;
+     */
+    public function withDefaultPaymentMethod()
+    {
+        $payment_method = $this->owner->getDefaultPaymentMethod();
+        if (is_null($payment_method)) {
+            throw InvalidPaymentMethod::noDefaultPaymentMethodSetted();
+        }
+        $this->payment_method = $payment_method;
+        return $this;
     }
 
     /**

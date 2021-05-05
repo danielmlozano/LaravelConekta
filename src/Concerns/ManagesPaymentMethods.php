@@ -79,6 +79,20 @@ trait ManagesPaymentMethods
     }
 
     /**
+     * Determine if the customer has a default payment method
+     *
+     * @return bool
+     */
+    public function hasDefaultPaymentMethod()
+    {
+        if (!$this->hasConektaId()) {
+            return false;
+        }
+
+        return (!is_null($this->getDefaultPaymentMethod()));
+    }
+
+    /**
      * Remove the given paynt method
      *
      * @param Conekta\PaymentMethod|\Danielmlozano\LaravelConekta\PaymentMethod|String| $payment_method
