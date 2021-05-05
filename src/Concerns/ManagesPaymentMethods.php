@@ -63,6 +63,22 @@ trait ManagesPaymentMethods
     }
 
     /**
+     * Retrieve the default payment method for the model
+     *
+     * @return \Danielmlozano\LaravelConekta\PaymentMethod
+     */
+    public function getDefaultPaymentMethod()
+    {
+        if (!$this->hasConektaId()) {
+            return null;
+        }
+
+        return $this->paymentMethods()->filter(
+            fn ($pm) => $pm->__get('default') === true
+        )->first();
+    }
+
+    /**
      * Remove the given paynt method
      *
      * @param Conekta\PaymentMethod|\Danielmlozano\LaravelConekta\PaymentMethod|String| $payment_method
@@ -85,5 +101,23 @@ trait ManagesPaymentMethods
         }
 
         return $payment_method->delete();
+    }
+
+    /**
+     * Set the default payment method for the Customer
+     *
+     * @param PaymentMethod $payment_method
+     * @return void
+     */
+    public function setDefaultPaymentMethod(PaymentMethod $payment_method)
+    {
+        $this->updateConektaCustomer([
+            'default_payment_source_id' => $payment_method->__get('id')
+        ]);
+
+        $this->card_brand = $payment_method->__get('brand');
+        $this->card_last_four = $payment_method->__get('last4');
+        $this->save();
+        $this->refresh();
     }
 }
