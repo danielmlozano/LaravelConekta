@@ -79,7 +79,7 @@ class Order
     public function addProduct($product)
     {
         if (is_array($product)) {
-            if (!array_key_exists("name", $product,) || !array_key_exists("unit_price", $product) || !array_key_exists("quantity", $product)) {
+            if (!array_key_exists("name", $product, ) || !array_key_exists("unit_price", $product) || !array_key_exists("quantity", $product)) {
                 throw InvalidProduct::invalidData();
             }
             $product = new Product(
@@ -161,6 +161,7 @@ class Order
      */
     public function charge($options = [])
     {
+        LaravelConekta::init();
         if (is_null($this->payment_method) && is_null($this->card_token)) {
             throw NoPaymentMethod::paymentMethodNotSetted();
         }
@@ -200,9 +201,9 @@ class Order
 
             return new Payment(ConektaOrder::create($payload));
         } catch (Handler $error) {
-            // $conekta_error = $error->getConektaMessage();
-            // print(var_dump($conekta_error->type));
-            // print(var_dump($conekta_error->details));
+            $conekta_error = $error->getConektaMessage();
+            \Log::debug('conekta_error->type', [$conekta_error->type]);
+            \Log::debug('conekta_error->details', [$conekta_error->details]);
             throw $error;
         }
     }

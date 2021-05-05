@@ -2,6 +2,7 @@
 
 namespace Danielmlozano\LaravelConekta\Concerns;
 
+use Conekta\Handler;
 use Danielmlozano\LaravelConekta\PaymentMethod;
 use Conekta\PaymentMethod as ConektaPaymentMethod;
 
@@ -17,13 +18,20 @@ trait ManagesPaymentMethods
      */
     public function addPaymentMethod($token_id, $type = 'card')
     {
-        $this->assertCustomerExists();
-        $customer = $this->asConektaCustomer();
-        $payment_method = $customer->createPaymentSource([
-            'token_id' => $token_id,
-            'type' => $type,
-        ]);
-        return $payment_method;
+        try {
+            $this->assertCustomerExists();
+            $customer = $this->asConektaCustomer();
+            $payment_method = $customer->createPaymentSource([
+                'token_id' => $token_id,
+                'type' => $type,
+            ]);
+            return $payment_method;
+        } catch (Handler $error) {
+            $conekta_error = $error->getConektaMessage();
+            \Log::debug('conekta_error->type', [$conekta_error->type]);
+            \Log::debug('conekta_error->details', [$conekta_error->details]);
+            throw $error;
+        }
     }
 
     /**
