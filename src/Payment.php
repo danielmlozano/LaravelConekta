@@ -17,13 +17,22 @@ class Payment implements Arrayable, Jsonable, JsonSerializable
     protected $conekta_order;
 
     /**
+     * The type or payment/order
+     *
+     * @var string
+     */
+    public $type;
+
+    /**
      * Create a new Payment instance
      *
      * @param Order $conekta_order
+     * @param string $type
      */
-    public function __construct(Order $conekta_order)
+    public function __construct(Order $conekta_order, $type = 'card')
     {
         $this->conekta_order = $conekta_order;
+        $this->type = $type;
     }
 
     /**
@@ -60,8 +69,9 @@ class Payment implements Arrayable, Jsonable, JsonSerializable
         $data = [
             'id' => $this->__get('id'),
             'status' => $this->__get('payment_status'),
+            'reference' => isset($payment_method->reference) ? $payment_method->reference : '',
             'amount' => $this->__get('amount'),
-            'auth_code' => $payment_method->auth_code,
+            'auth_code' => isset($payment_method->auth_code) ? $payment_method->auth_code : '',
             'last4' => $payment_method->last4 ?? null,
             'brand' => $payment_method->brand ?? null,
             'payment_type' => $payment_method->type,

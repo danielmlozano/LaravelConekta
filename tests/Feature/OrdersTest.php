@@ -62,4 +62,16 @@ class OrdersTest extends FeatureTestCase
         $this->assertNotNull($payment->__get('id'));
         $this->assertEquals(100, $payment->total());
     }
+
+    public function testOrdersCanBeCreatedWithOxxoPay()
+    {
+        $user = $this->createCustomer('customers_can_be_created', true);
+        $payment = $user->createOrder()
+            ->addProduct(new Product('Test', 10000, 1))
+            ->withOxxoPay()
+            ->charge();
+        $this->assertNotNull($payment->__get('id'));
+        $this->assertNotNull($payment->__get('charges')[0]->payment_method->reference);
+        $this->assertEquals(14, strlen($payment->__get('charges')[0]->payment_method->reference));
+    }
 }

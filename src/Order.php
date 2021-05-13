@@ -2,8 +2,10 @@
 
 namespace Danielmlozano\LaravelConekta;
 
+use Carbon\Carbon;
 use Conekta\Handler;
 use Conekta\Order as ConektaOrder;
+use Conekta\ParameterValidationError;
 use Danielmlozano\LaravelConekta\Exceptions\InvalidProduct;
 use Danielmlozano\LaravelConekta\Exceptions\NoPaymentMethod;
 use Danielmlozano\LaravelConekta\PaymentMethod;
@@ -152,6 +154,36 @@ class Order
     }
 
     /**
+     * Prepare the order to be fulfilled with Oxxo Pay
+     *
+     * @return \Danielmlozano\LaravelConekta\Order;
+     */
+    public function withOxxoPay()
+    {
+        $charge = [
+            'type' => 'oxxo_cash',
+        ];
+        $config = config('conekta.oxxo_reference_lifetime');
+        if ($config['amount'] > 0) {
+            $expiraiton = Carbon::now();
+            if ($config['type'] === 'hours') {
+                $expiraiton->addDays($config['amount']);
+            } else {
+                $expiraiton->addHours($config['amount']);
+            }
+            $charge = array_merge(
+                $charge,
+                ['expires_at' => $expiraiton->timestamp],
+            );
+        }
+        $this->payment_method = [
+            'type' => 'oxxo_cash',
+            'object' => $charge,
+        ];
+        return $this;
+    }
+
+    /**
      * Perform the charge
      *
      * @param array $options
@@ -162,6 +194,61 @@ class Order
     public function charge($options = [])
     {
         LaravelConekta::init();
+        if (is_array($this->payment_method)) {
+            return $this->processWithOxxoPay($options);
+        }
+        return $this->processWithCard($options);
+    }
+
+    /**
+     * Process the order to be payed with Oxxo Pay
+     *
+     * @param array $options
+     * @return \Danielmlozano\LaravelConekta\Payment
+     */
+    public function processWithOxxoPay(array $options)
+    {
+        try {
+            $payment_method = $this->payment_method['object'];
+            $amount = array_reduce($this->products, fn ($carry, $item) => $carry += $item->quantity * $item->unit_price);
+            $payload = array_merge(
+                [
+                    'currency' => $this->currency,
+                    "customer_info" => [
+                        "customer_id" => $this->owner->conekta_id,
+                    ],
+                    'line_items' => $this->getProducts()->map(
+                        fn ($item) => $item->toArray()
+                    )->toArray(),
+                    'charges' => [
+                        [
+                            'payment_method' => $payment_method,
+                            'amount' => $amount,
+                        ]
+                    ]
+                ],
+                $options,
+            );
+
+            return new Payment(ConektaOrder::create($payload), 'oxxo_cash');
+        } catch (ParameterValidationError $error) {
+            echo $error->getMessage();
+        } catch (Handler $error) {
+            $conekta_error = $error->getConektaMessage();
+            \Log::debug('conekta_error->type', [$conekta_error->type]);
+            \Log::debug('conekta_error->details', [$conekta_error->details]);
+            throw $error;
+        }
+    }
+
+    /**
+     * Process the order with card
+     *
+     * @param array $options
+     * @return \Danielmlozano\LaravelConekta\Payment
+     */
+    public function processWithCard(array $options)
+    {
         if (is_null($this->payment_method) && is_null($this->card_token)) {
             throw NoPaymentMethod::paymentMethodNotSetted();
         }

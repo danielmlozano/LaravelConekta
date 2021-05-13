@@ -38,4 +38,17 @@ return [
 
     'currency' => env('CONEKTA_CURRENCY', 'usd'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Oxxo Pay
+    |--------------------------------------------------------------------------
+    |
+    | This configuration is used for the Oxxo pay method
+    |
+    */
+    'webhook' => env('CONEKTA_WEBHOOK_URL', '/conekta/webhook'),
+    'oxxo_reference_lifetime' => [
+        'amount' => 0, //Leave in 0 for no expiration at all
+        'type' => 'hours' // accepts: 'hours', 'days'
+    ],
 ];

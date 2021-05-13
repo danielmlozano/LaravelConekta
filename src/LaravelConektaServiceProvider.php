@@ -2,6 +2,7 @@
 
 namespace Danielmlozano\LaravelConekta;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class LaravelConektaServiceProvider extends ServiceProvider
@@ -16,6 +17,7 @@ class LaravelConektaServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerMigrations();
+        $this->registerRoutes();
         $this->registerPublishing();
     }
 
@@ -53,6 +55,21 @@ class LaravelConektaServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
+    }
+
+    /**
+     * Register the package routes.
+     *
+     * @return void
+     */
+    protected function registerRoutes()
+    {
+        Route::group([
+            'namespace' => 'Danielmlozano\LaravelConekta\Http\Controllers',
+            'as' => 'conekta.',
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        });
     }
 
     /**

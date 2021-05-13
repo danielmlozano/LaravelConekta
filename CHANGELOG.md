@@ -1,5 +1,11 @@
 # Release Notes
 
+## v1.1.0
+
+### Added
+	- Now you can perform charges with Oxxo Pay
+	- Added a Webhook handler, for now, just handles the Oxxo Pay
+	- You can listen for a ConektaOrderPaid event
 ## v1.0.1
 
 ### Added
